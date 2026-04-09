@@ -1,8 +1,8 @@
 FROM python:3.12-slim
 WORKDIR /app
 COPY pyproject.toml .
+RUN pip install --no-cache-dir git+https://github.com/abedegno/givenergy-modbus-async.git@dev
 COPY src/ src/
-COPY givenergy_modbus_async/ givenergy_modbus_async/
 COPY settings/ settings/
 COPY config.example.yaml config.example.yaml
 RUN pip install --no-cache-dir .
