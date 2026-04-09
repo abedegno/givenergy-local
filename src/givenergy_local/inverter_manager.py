@@ -23,7 +23,7 @@ class InverterManager:
         """Connect to each inverter, run detect_plant, populate self.inverters keyed by serial."""
         for cfg in configs:
             try:
-                client = Client(host=cfg.host, port=cfg.port)
+                client = Client(host=cfg.host, port=cfg.port, connect_timeout=10.0)
                 await client.connect()
                 await client.detect_plant(timeout=5.0, retries=2)
                 serial = client.plant.inverter_serial_number

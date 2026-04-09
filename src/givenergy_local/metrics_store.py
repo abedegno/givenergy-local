@@ -85,7 +85,7 @@ class MetricsStore:
         self._ensure_partition(table)
         self.conn.execute(
             f"INSERT INTO {table} (inverter_serial, timestamp, data) VALUES (?, ?, ?)",
-            (serial, timestamp, json.dumps(data)),
+            (serial, timestamp, json.dumps(data, default=str)),
         )
         self.conn.commit()
 
