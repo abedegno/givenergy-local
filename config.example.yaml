@@ -1,0 +1,29 @@
+# givenergy-local example configuration
+# Copy to config.yaml and adjust to your setup.
+
+# --- Inverters ---
+# List one entry per physical inverter on your LAN.
+inverters:
+  - host: 192.168.1.100   # IP address (or hostname) of the inverter
+    port: 8899            # Modbus TCP port (default: 8899)
+  # - host: 192.168.1.101
+  #   port: 8899
+
+# --- Storage ---
+storage:
+  app_db: data/app.db           # SQLite database for application state
+  metrics_db: data/metrics.db   # SQLite database for time-series metrics
+  retention_months: 0           # Months of metrics to keep (0 = keep forever)
+  compression: true             # Enable zstd compression on metrics_db
+
+# --- HTTP Server ---
+server:
+  host: "0.0.0.0"   # Bind address ("127.0.0.1" to restrict to localhost)
+  port: 8099        # Port to listen on
+
+# --- API Authentication ---
+auth_required: true   # Require an API key on all endpoints
+
+# --- Polling ---
+poll_interval: 30           # Seconds between incremental data polls
+full_refresh_interval: 300  # Seconds between full register refreshes
