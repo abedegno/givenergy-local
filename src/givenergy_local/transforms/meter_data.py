@@ -1,4 +1,5 @@
 """Transform an Inverter model into the GivEnergy Cloud /meter-data-latest shape."""
+
 from datetime import timezone
 
 

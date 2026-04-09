@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 @pytest.mark.asyncio
 async def test_connect_and_detect_populates_state():
-    from givenergy_local.inverter_manager import InverterManager
     from givenergy_local.config import InverterConfig
+    from givenergy_local.inverter_manager import InverterManager
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -32,8 +33,8 @@ async def test_connect_and_detect_populates_state():
 
 @pytest.mark.asyncio
 async def test_connect_handles_unreachable_inverter():
-    from givenergy_local.inverter_manager import InverterManager
     from givenergy_local.config import InverterConfig
+    from givenergy_local.inverter_manager import InverterManager
 
     mock_client = AsyncMock()
     mock_client.connect.side_effect = OSError("Connection refused")
@@ -48,8 +49,8 @@ async def test_connect_handles_unreachable_inverter():
 
 @pytest.mark.asyncio
 async def test_close_all_clears_state():
-    from givenergy_local.inverter_manager import InverterManager
     from givenergy_local.config import InverterConfig
+    from givenergy_local.inverter_manager import InverterManager
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -69,8 +70,8 @@ async def test_close_all_clears_state():
 
 @pytest.mark.asyncio
 async def test_connect_multiple_inverters():
-    from givenergy_local.inverter_manager import InverterManager
     from givenergy_local.config import InverterConfig
+    from givenergy_local.inverter_manager import InverterManager
 
     def make_client(serial: str) -> AsyncMock:
         client = AsyncMock()

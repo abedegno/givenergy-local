@@ -1,9 +1,10 @@
 """Tests for the system_data transform."""
-import pytest
 
-from tests.fixtures.register_data import make_inverter_cache
+import pytest
 from givenergy_modbus_async.model.inverter import Inverter
+
 from givenergy_local.transforms.system_data import transform_system_data
+from tests.fixtures.register_data import make_inverter_cache
 
 
 @pytest.fixture

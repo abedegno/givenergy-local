@@ -2,8 +2,9 @@
 
 
 def test_fixture_produces_valid_inverter():
-    from tests.fixtures.register_data import make_inverter_cache
     from givenergy_modbus_async.model.inverter import Inverter
+
+    from tests.fixtures.register_data import make_inverter_cache
 
     cache = make_inverter_cache()
     inv = Inverter(cache)

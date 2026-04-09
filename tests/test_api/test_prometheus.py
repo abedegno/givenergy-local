@@ -6,13 +6,15 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def client(tmp_path):
-    from givenergy_local.main import app, app_state, InverterState
+    from unittest.mock import MagicMock
+
+    from givenergy_modbus_async.model.inverter import Inverter
+
     from givenergy_local.auth import TokenStore
     from givenergy_local.database import init_app_db
+    from givenergy_local.main import InverterState, app, app_state
     from givenergy_local.metrics_store import MetricsStore
     from tests.fixtures.register_data import make_inverter_cache
-    from givenergy_modbus_async.model.inverter import Inverter
-    from unittest.mock import MagicMock
 
     app_state.auth_required = False
     conn = init_app_db(str(tmp_path / "app.db"))

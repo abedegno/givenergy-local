@@ -5,7 +5,11 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from givenergy_local.api.schemas import PaginatedResponse, PaginationLinks, PaginationMeta
+from givenergy_local.api.schemas import (
+    PaginatedResponse,
+    PaginationLinks,
+    PaginationMeta,
+)
 
 
 def paginate(

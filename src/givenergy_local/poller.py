@@ -57,7 +57,5 @@ async def poll_loop(
             try:
                 await poll_once(state, store, full_refresh=full)
             except Exception as e:
-                logger.error(
-                    "Unhandled poll error for %s: %s", state.serial, e
-                )
+                logger.error("Unhandled poll error for %s: %s", state.serial, e)
         await asyncio.sleep(interval)

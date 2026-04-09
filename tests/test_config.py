@@ -1,10 +1,8 @@
 """Tests for config loading."""
 
-import textwrap
-import tempfile
 import os
-
-import pytest
+import tempfile
+import textwrap
 
 from givenergy_local.config import AppConfig, load_config
 

@@ -1,7 +1,5 @@
 """Shared pytest fixtures for givenergy-local tests."""
 
-import os
-import tempfile
 import textwrap
 
 import pytest

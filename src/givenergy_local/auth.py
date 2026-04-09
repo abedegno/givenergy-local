@@ -46,8 +46,6 @@ class TokenStore:
 
     def list_all(self) -> list[dict]:
         """Return all tokens as a list of dicts (without the hash)."""
-        cursor = self._conn.execute(
-            "SELECT id, name, created_at, last_used_at FROM api_tokens ORDER BY id"
-        )
+        cursor = self._conn.execute("SELECT id, name, created_at, last_used_at FROM api_tokens ORDER BY id")
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]

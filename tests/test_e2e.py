@@ -1,18 +1,20 @@
 """End-to-end smoke tests covering auth, data, and metrics endpoints."""
 
+from unittest.mock import MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
-from tests.fixtures.register_data import make_inverter_cache, make_battery_cache
-from givenergy_modbus_async.model.inverter import Inverter
 from givenergy_modbus_async.model.battery import Battery
+from givenergy_modbus_async.model.inverter import Inverter
+
+from tests.fixtures.register_data import make_battery_cache, make_inverter_cache
 
 
 @pytest.fixture
 def e2e_client(tmp_path):
-    from givenergy_local.main import app, app_state, InverterState
     from givenergy_local.auth import TokenStore, generate_token
     from givenergy_local.database import init_app_db
+    from givenergy_local.main import InverterState, app, app_state
     from givenergy_local.metrics_store import MetricsStore
 
     app_state.auth_required = True
@@ -46,8 +48,10 @@ def test_auth_required_without_token(e2e_client):
 
 def test_auth_works_with_valid_token(e2e_client):
     client, token = e2e_client
-    resp = client.get("/v1/inverter/FA2424G403/system-data-latest",
-                      headers={"Authorization": f"Bearer {token}"})
+    resp = client.get(
+        "/v1/inverter/FA2424G403/system-data-latest",
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert resp.status_code == 200
     data = resp.json()["data"]
     assert data["status"] == "Normal"

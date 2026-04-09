@@ -49,10 +49,12 @@ class AppConfig:
 def _load_inverters(raw: list[dict[str, Any]]) -> list[InverterConfig]:
     result = []
     for item in raw:
-        result.append(InverterConfig(
-            host=item["host"],
-            port=int(item.get("port", 8899)),
-        ))
+        result.append(
+            InverterConfig(
+                host=item["host"],
+                port=int(item.get("port", 8899)),
+            )
+        )
     return result
 
 

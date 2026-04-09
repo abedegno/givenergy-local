@@ -75,13 +75,13 @@ async def lifespan(app: FastAPI):
         plaintext, _ = generate_token()
         app_state.token_store.create("admin", plaintext)
         logger.warning(
-            "No API tokens found — generated admin token: %s  "
-            "(store this securely, it will not be shown again)",
+            "No API tokens found — generated admin token: %s  (store this securely, it will not be shown again)",
             plaintext,
         )
 
     # 4. Connect to inverters
     from .inverter_manager import InverterManager
+
     manager = InverterManager()
     if config and config.inverters:
         await manager.connect_all(config.inverters)
@@ -91,12 +91,17 @@ async def lifespan(app: FastAPI):
         logger.warning("No inverters connected. API will return empty data.")
 
     # 5. Start background poller
-    from .poller import poll_loop
     import asyncio
+
+    from .poller import poll_loop
+
     poller_task = asyncio.create_task(
-        poll_loop(app_state.inverters, app_state.metrics_store,
-                  interval=config.poll_interval if config else 30,
-                  full_refresh_interval=config.full_refresh_interval if config else 300)
+        poll_loop(
+            app_state.inverters,
+            app_state.metrics_store,
+            interval=config.poll_interval if config else 30,
+            full_refresh_interval=config.full_refresh_interval if config else 300,
+        )
     )
 
     yield
@@ -120,9 +125,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from .api.devices import router as devices_router
-from .api.inverter_data import router as inverter_data_router
-from .api.prometheus import router as prometheus_router
+from .api.devices import router as devices_router  # noqa: E402
+from .api.inverter_data import router as inverter_data_router  # noqa: E402
+from .api.prometheus import router as prometheus_router  # noqa: E402
 
 app.include_router(devices_router, prefix="/v1")
 app.include_router(inverter_data_router, prefix="/v1")

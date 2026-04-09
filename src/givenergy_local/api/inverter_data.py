@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from givenergy_local.api.dependencies import require_auth
 from givenergy_local.api.schemas import DataResponse
-from givenergy_local.transforms.system_data import transform_system_data
 from givenergy_local.transforms.meter_data import transform_meter_data
+from givenergy_local.transforms.system_data import transform_system_data
 
 router = APIRouter(tags=["Inverter Data"])
 

@@ -1,7 +1,5 @@
 """Tests for the pagination utility."""
 
-import pytest
-
 
 def test_paginate_first_page():
     from givenergy_local.api.pagination import paginate

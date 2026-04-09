@@ -1,8 +1,6 @@
-import sqlite3
-from pathlib import Path
-
 def test_init_app_db_creates_tables(tmp_path):
     from givenergy_local.database import init_app_db
+
     db_path = str(tmp_path / "app.db")
     conn = init_app_db(db_path)
     cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
@@ -14,8 +12,10 @@ def test_init_app_db_creates_tables(tmp_path):
     assert "preset_profiles" in tables
     conn.close()
 
+
 def test_init_app_db_is_idempotent(tmp_path):
     from givenergy_local.database import init_app_db
+
     db_path = str(tmp_path / "app.db")
     conn1 = init_app_db(db_path)
     conn1.execute("INSERT INTO api_tokens (name, token_hash) VALUES ('test', 'abc')")
