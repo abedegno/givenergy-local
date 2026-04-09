@@ -103,12 +103,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# TODO (Task 11): Include routers once route handler files exist.
-# Example:
-#   from givenergy_local.api.routes import inverters, settings, energy
-#   app.include_router(inverters.router)
-#   app.include_router(settings.router)
-#   app.include_router(energy.router)
+from .api.devices import router as devices_router
+from .api.inverter_data import router as inverter_data_router
+from .api.prometheus import router as prometheus_router
+
+app.include_router(devices_router, prefix="/v1")
+app.include_router(inverter_data_router, prefix="/v1")
+app.include_router(prometheus_router)
 
 
 @app.get("/")
