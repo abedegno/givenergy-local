@@ -1,0 +1,117 @@
+"""FastAPI application entry point for GivEnergy Local API."""
+
+from __future__ import annotations
+
+import logging
+import os
+from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
+from typing import Optional
+
+from fastapi import FastAPI
+
+from givenergy_local.auth import TokenStore, generate_token
+from givenergy_local.config import AppConfig, load_config
+from givenergy_local.database import init_app_db
+from givenergy_local.metrics_store import MetricsStore
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class InverterState:
+    """Runtime state for a connected inverter."""
+
+    serial: str
+    host: str
+    port: int
+    plant: Optional[object] = None
+    client: Optional[object] = None
+
+
+@dataclass
+class AppState:
+    """Global application state shared across request handlers."""
+
+    config: Optional[AppConfig] = None
+    token_store: Optional[TokenStore] = None
+    metrics_store: Optional[MetricsStore] = None
+    inverters: dict[str, InverterState] = field(default_factory=dict)
+    auth_required: bool = True
+
+
+app_state = AppState()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: initialise resources on startup, clean up on shutdown."""
+    global app_state
+
+    # 1. Load configuration
+    config_path = os.environ.get("GIVENERGY_CONFIG", "config.yaml")
+    try:
+        config = load_config(config_path)
+        app_state.config = config
+        app_state.auth_required = config.auth_required
+        logger.info("Loaded config from %s", config_path)
+    except FileNotFoundError:
+        logger.warning("Config file %s not found — using defaults", config_path)
+        config = None
+
+    # 2. Initialise databases
+    app_db_path = config.storage.app_db if config else "data/app.db"
+    metrics_db_path = config.storage.metrics_db if config else "data/metrics.db"
+
+    app_db_conn = init_app_db(app_db_path)
+    app_state.token_store = TokenStore(app_db_conn)
+
+    app_state.metrics_store = MetricsStore(metrics_db_path)
+    logger.info("Databases initialised (app=%s, metrics=%s)", app_db_path, metrics_db_path)
+
+    # 3. Generate admin token if none exist
+    existing_tokens = app_state.token_store.list_all()
+    if not existing_tokens:
+        plaintext, _ = generate_token()
+        app_state.token_store.create("admin", plaintext)
+        logger.warning(
+            "No API tokens found — generated admin token: %s  "
+            "(store this securely, it will not be shown again)",
+            plaintext,
+        )
+
+    # 4. TODO (Task 9): Initialise inverter managers
+    # For each inverter in config, create InverterState and connect modbus client.
+
+    # 5. TODO (Task 10): Start background poller
+    # Launch asyncio task that polls inverters at config.poll_interval.
+
+    yield
+
+    # Shutdown: clean up resources
+    if app_state.metrics_store:
+        app_state.metrics_store.close()
+    if app_state.token_store:
+        app_state.token_store._conn.close()
+
+    logger.info("GivEnergy Local API shut down")
+
+
+app = FastAPI(
+    title="GivEnergy Local API",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# TODO (Task 11): Include routers once route handler files exist.
+# Example:
+#   from givenergy_local.api.routes import inverters, settings, energy
+#   app.include_router(inverters.router)
+#   app.include_router(settings.router)
+#   app.include_router(energy.router)
+
+
+@app.get("/")
+async def root():
+    """Health-check / discovery endpoint."""
+    return {"name": "GivEnergy Local API", "version": "0.1.0"}
