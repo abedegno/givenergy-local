@@ -140,7 +140,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 
 app.add_middleware(
     CORSMiddleware,
