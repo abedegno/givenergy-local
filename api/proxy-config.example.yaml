@@ -1,0 +1,21 @@
+mode: proxy
+
+listen:
+  host: 0.0.0.0
+  port: 7654
+
+cloud:
+  hosts:
+    - 13.42.129.212
+    - 18.170.183.170
+    - 35.178.236.174
+  port: 7654
+
+api:
+  url: http://localhost:8099
+  token: ""
+  ingest_enabled: false
+
+logging:
+  level: normal
+  file: stdout
