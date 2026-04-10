@@ -57,7 +57,8 @@ class _EnergyFlowDiagramState extends State<EnergyFlowDiagram>
     final gridColor = data.grid.power < 0 ? GivLocalColors.battery : GivLocalColors.grid;
     final gridLabel = data.grid.power < 0 ? 'Export' : (data.grid.power > 0 ? 'Import' : 'Grid');
     // Battery: show charging/discharging state
-    final batteryLabel = data.battery.power > 0 ? 'Charging' : (data.battery.power < 0 ? 'Discharging' : 'Battery');
+    // p_battery > 0 = discharging, < 0 = charging
+    final batteryLabel = data.battery.power > 0 ? 'Discharging' : (data.battery.power < 0 ? 'Charging' : 'Battery');
 
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;

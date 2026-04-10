@@ -110,12 +110,13 @@ class FlowPainter extends CustomPainter {
     }
 
     // Battery <-> Home
+    // p_battery > 0 = discharging (battery → home), < 0 = charging (home → battery)
     if (data.battery.power != 0) {
-      final charging = data.battery.power > 0;
+      final discharging = data.battery.power > 0;
       _drawFlow(
         canvas,
-        charging ? homeCenter : batteryCenter,
-        charging ? batteryCenter : homeCenter,
+        discharging ? batteryCenter : homeCenter,
+        discharging ? homeCenter : batteryCenter,
         GivLocalColors.battery,
         data.battery.power.abs(),
       );
