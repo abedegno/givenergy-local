@@ -31,7 +31,7 @@ class ApiService {
     if (localUrl.isNotEmpty) {
       try {
         final response = await _dio.get(
-          '$localUrl/api/v1/devices',
+          '$localUrl/v1/communication-device',
           options: Options(
             headers: _headers,
             receiveTimeout: const Duration(seconds: 2),
@@ -52,7 +52,7 @@ class ApiService {
     if (remoteUrl.isNotEmpty) {
       try {
         final response = await _dio.get(
-          '$remoteUrl/api/v1/devices',
+          '$remoteUrl/v1/communication-device',
           options: Options(
             headers: _headers,
             receiveTimeout: const Duration(seconds: 5),
@@ -92,14 +92,14 @@ class ApiService {
 
   Future<SystemData?> getSystemData(String serial) {
     return _get(
-      '/api/v1/inverter/$serial/system-data/latest',
+      '/v1/inverter/$serial/system-data-latest',
       (json) => SystemData.fromJson(json['data'] as Map<String, dynamic>? ?? json),
     );
   }
 
   Future<MeterData?> getMeterData(String serial) {
     return _get(
-      '/api/v1/inverter/$serial/meter-data/latest',
+      '/v1/inverter/$serial/meter-data-latest',
       (json) => MeterData.fromJson(json['data'] as Map<String, dynamic>? ?? json),
     );
   }
@@ -108,7 +108,7 @@ class ApiService {
     if (connectionState == ConnectionState.disconnected) return [];
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        '$_baseUrl/api/v1/devices',
+        '$_baseUrl/v1/communication-device',
         options: Options(headers: _headers),
       );
       final data = response.data;
@@ -126,7 +126,7 @@ class ApiService {
     if (connectionState == ConnectionState.disconnected) return [];
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        '$_baseUrl/api/v1/inverter/$serial/settings',
+        '$_baseUrl/v1/inverter/$serial/settings',
         options: Options(headers: _headers),
       );
       final data = response.data;
@@ -142,7 +142,7 @@ class ApiService {
 
   Future<InverterSetting?> readSetting(String serial, int id) {
     return _get(
-      '/api/v1/inverter/$serial/settings/$id/read',
+      '/v1/inverter/$serial/settings/$id/read',
       (json) => InverterSetting.fromJson(json['data'] as Map<String, dynamic>? ?? json),
     );
   }
@@ -152,7 +152,7 @@ class ApiService {
     if (connectionState == ConnectionState.disconnected) return null;
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '$_baseUrl/api/v1/inverter/$serial/settings/$id/write',
+        '$_baseUrl/v1/inverter/$serial/settings/$id/write',
         data: {'value': value},
         options: Options(headers: _headers),
       );
@@ -170,7 +170,7 @@ class ApiService {
     if (connectionState == ConnectionState.disconnected) return [];
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        '$_baseUrl/api/v1/inverter/$serial/data-points/$date',
+        '$_baseUrl/v1/inverter/$serial/data-points/$date',
         options: Options(headers: _headers),
       );
       final data = response.data;

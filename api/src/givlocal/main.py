@@ -140,6 +140,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from starlette.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 from .api.devices import router as devices_router  # noqa: E402
 from .api.inverter_control import router as inverter_control_router  # noqa: E402
 from .api.inverter_data import router as inverter_data_router  # noqa: E402
