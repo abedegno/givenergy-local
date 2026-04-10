@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/connection_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme.dart';
-import '../widgets/mode_selector.dart';
 import '../widgets/schedule_slot_card.dart';
 
 class SchedulesScreen extends ConsumerStatefulWidget {
@@ -15,26 +14,23 @@ class SchedulesScreen extends ConsumerStatefulWidget {
 }
 
 class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
-  // ── Operating mode (0=Eco, 1=Timed, 2=Export) ────────────────────────────
-  // Eco mode setting is a boolean: true = eco ON (mode 0), false = timed/export
-  // We map: ecoMode true → 0, ecoMode false + discharge enabled → 2 (export),
-  // ecoMode false + discharge disabled → 1 (timed)
-  int _operatingMode = 1;
+  // Independent toggles - not mutually exclusive
+  bool _ecoMode = true;
 
-  // ── Battery reserve ───────────────────────────────────────────────────────
+  // Battery reserve
   double _batteryReserve = 4;
 
-  // ── Charge slot 1 ────────────────────────────────────────────────────────
+  // AC Charge
+  bool _chargeEnabled = false;
   String _chargeStart = '00:30';
   String _chargeEnd = '05:00';
   int _chargeTargetSoc = 80;
-  bool _chargeEnabled = false;
 
-  // ── Discharge slot 1 ─────────────────────────────────────────────────────
+  // DC Discharge
+  bool _dischargeEnabled = false;
   String _dischargeStart = '16:00';
   String _dischargeEnd = '19:00';
   int _dischargeTargetSoc = 4;
-  bool _dischargeEnabled = false;
 
   bool _loading = true;
   String? _serial;
@@ -56,7 +52,6 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
 
     final api = ref.read(apiServiceProvider);
 
-    // Read all settings concurrently
     final results = await Future.wait([
       api.readSetting(serial, SettingIds.ecoMode),
       api.readSetting(serial, SettingIds.batteryReserve),
@@ -70,85 +65,45 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
       api.readSetting(serial, SettingIds.dischargeSlot1Soc),
     ]);
 
-    final ecoModeSetting = results[0];
-    final batteryReserveSetting = results[1];
-    final enableChargeSetting = results[2];
-    final enableDischargeSetting = results[3];
-    final chargeStartSetting = results[4];
-    final chargeEndSetting = results[5];
-    final chargeSocSetting = results[6];
-    final dischargeStartSetting = results[7];
-    final dischargeEndSetting = results[8];
-    final dischargeSocSetting = results[9];
-
     if (!mounted) return;
 
     setState(() {
-      // Eco mode: API returns true/false or 1/0
-      final ecoVal = ecoModeSetting?.value;
-      final ecoOn = ecoVal == true || ecoVal == 1 || ecoVal == 'true';
-      if (ecoOn) {
-        _operatingMode = 0;
-      } else {
-        // distinguish timed vs export by discharge setting
-        final dischargeEnabled = enableDischargeSetting?.value;
-        final dischargeOn = dischargeEnabled == true ||
-            dischargeEnabled == 1 ||
-            dischargeEnabled == 'true';
-        _operatingMode = dischargeOn ? 2 : 1;
-      }
+      _ecoMode = _parseBool(results[0]?.value);
 
-      // Battery reserve
-      final reserve = batteryReserveSetting?.value;
+      final reserve = results[1]?.value;
       if (reserve != null) {
         _batteryReserve = (reserve is num)
             ? reserve.toDouble().clamp(4.0, 100.0)
             : double.tryParse(reserve.toString())?.clamp(4.0, 100.0) ?? 4.0;
       }
 
-      // Charge slot
-      final chargeEnVal = enableChargeSetting?.value;
-      _chargeEnabled =
-          chargeEnVal == true || chargeEnVal == 1 || chargeEnVal == 'true';
+      _chargeEnabled = _parseBool(results[2]?.value);
+      _dischargeEnabled = _parseBool(results[3]?.value);
 
-      final chargeStart = chargeStartSetting?.value?.toString();
-      if (chargeStart != null && chargeStart.isNotEmpty) {
-        _chargeStart = chargeStart;
-      }
-      final chargeEnd = chargeEndSetting?.value?.toString();
-      if (chargeEnd != null && chargeEnd.isNotEmpty) _chargeEnd = chargeEnd;
+      _chargeStart = _parseString(results[4]?.value, _chargeStart);
+      _chargeEnd = _parseString(results[5]?.value, _chargeEnd);
+      _chargeTargetSoc = _parseInt(results[6]?.value, _chargeTargetSoc);
 
-      final chargeSoc = chargeSocSetting?.value;
-      if (chargeSoc != null) {
-        _chargeTargetSoc = (chargeSoc is num)
-            ? chargeSoc.toInt()
-            : int.tryParse(chargeSoc.toString()) ?? 80;
-      }
-
-      // Discharge slot
-      final dischargeEnVal = enableDischargeSetting?.value;
-      _dischargeEnabled = dischargeEnVal == true ||
-          dischargeEnVal == 1 ||
-          dischargeEnVal == 'true';
-
-      final dischargeStart = dischargeStartSetting?.value?.toString();
-      if (dischargeStart != null && dischargeStart.isNotEmpty) {
-        _dischargeStart = dischargeStart;
-      }
-      final dischargeEnd = dischargeEndSetting?.value?.toString();
-      if (dischargeEnd != null && dischargeEnd.isNotEmpty) {
-        _dischargeEnd = dischargeEnd;
-      }
-
-      final dischargeSoc = dischargeSocSetting?.value;
-      if (dischargeSoc != null) {
-        _dischargeTargetSoc = (dischargeSoc is num)
-            ? dischargeSoc.toInt()
-            : int.tryParse(dischargeSoc.toString()) ?? 4;
-      }
+      _dischargeStart = _parseString(results[7]?.value, _dischargeStart);
+      _dischargeEnd = _parseString(results[8]?.value, _dischargeEnd);
+      _dischargeTargetSoc = _parseInt(results[9]?.value, _dischargeTargetSoc);
 
       _loading = false;
     });
+  }
+
+  bool _parseBool(dynamic val) =>
+      val == true || val == 1 || val == 'true';
+
+  String _parseString(dynamic val, String fallback) {
+    final s = val?.toString();
+    return (s != null && s.isNotEmpty) ? s : fallback;
+  }
+
+  int _parseInt(dynamic val, int fallback) {
+    if (val is num) return val.toInt();
+    if (val is String) return int.tryParse(val) ?? fallback;
+    return fallback;
   }
 
   Future<void> _writeSetting(int id, dynamic value) async {
@@ -158,45 +113,13 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
     await api.writeSetting(serial, id, value);
   }
 
-  void _onModeChanged(int mode) {
-    setState(() => _operatingMode = mode);
-    // Eco mode is a boolean setting; export mode uses discharge enable
-    final ecoOn = mode == 0;
-    _writeSetting(SettingIds.ecoMode, ecoOn);
-    if (!ecoOn) {
-      final dischargeOn = mode == 2;
-      _writeSetting(SettingIds.enableDischarge, dischargeOn);
-    }
-  }
-
-  void _onReserveChanged(double value) {
-    setState(() => _batteryReserve = value);
-  }
-
-  void _onReserveChangeEnd(double value) {
-    _writeSetting(SettingIds.batteryReserve, value.round());
-  }
-
-  void _onChargeToggle(bool value) {
-    setState(() => _chargeEnabled = value);
-    _writeSetting(SettingIds.enableCharge, value);
-  }
-
-  void _onDischargeToggle(bool value) {
-    setState(() => _dischargeEnabled = value);
-    _writeSetting(SettingIds.enableDischarge, value);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Schedules',
-          style: TextStyle(
-            color: GivLocalColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: GivLocalColors.textPrimary, fontWeight: FontWeight.w600),
         ),
       ),
       body: _loading
@@ -235,46 +158,120 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Operating Mode
-          _SectionHeader(label: 'OPERATING MODE'),
-          const SizedBox(height: 8),
-          ModeSelector(
-            selected: _operatingMode,
-            onChanged: _onModeChanged,
+          // Eco Mode toggle
+          _buildToggleCard(
+            icon: Icons.eco,
+            iconColor: GivLocalColors.battery,
+            title: 'Eco Mode',
+            subtitle: 'Match demand from solar and battery',
+            value: _ecoMode,
+            onChanged: (v) {
+              setState(() => _ecoMode = v);
+              _writeSetting(SettingIds.ecoMode, v);
+            },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Battery Reserve
-          _SectionHeader(label: 'BATTERY RESERVE'),
+          const _SectionHeader(label: 'BATTERY RESERVE'),
           const SizedBox(height: 8),
           _buildReserveCard(),
           const SizedBox(height: 24),
 
-          // Charge Slots
-          _SectionHeader(label: 'CHARGE SLOTS'),
-          const SizedBox(height: 8),
-          ScheduleSlotCard(
-            slotNumber: 1,
-            startTime: _chargeStart,
-            endTime: _chargeEnd,
-            targetSoc: _chargeTargetSoc,
-            enabled: _chargeEnabled,
-            onToggle: _onChargeToggle,
+          // AC Charge
+          _buildToggleCard(
+            icon: Icons.battery_charging_full,
+            iconColor: GivLocalColors.solar,
+            title: 'AC Charge',
+            subtitle: 'Charge battery from grid during off-peak',
+            value: _chargeEnabled,
+            onChanged: (v) {
+              setState(() => _chargeEnabled = v);
+              _writeSetting(SettingIds.enableCharge, v);
+            },
           ),
-          const SizedBox(height: 24),
+          if (_chargeEnabled) ...[
+            const SizedBox(height: 8),
+            ScheduleSlotCard(
+              slotNumber: 1,
+              startTime: _chargeStart,
+              endTime: _chargeEnd,
+              targetSoc: _chargeTargetSoc,
+              enabled: _chargeEnabled,
+              onToggle: (v) {
+                setState(() => _chargeEnabled = v);
+                _writeSetting(SettingIds.enableCharge, v);
+              },
+            ),
+          ],
+          const SizedBox(height: 16),
 
-          // Discharge Slots
-          _SectionHeader(label: 'DISCHARGE SLOTS'),
-          const SizedBox(height: 8),
-          ScheduleSlotCard(
-            slotNumber: 1,
-            startTime: _dischargeStart,
-            endTime: _dischargeEnd,
-            targetSoc: _dischargeTargetSoc,
-            enabled: _dischargeEnabled,
-            onToggle: _onDischargeToggle,
+          // DC Discharge
+          _buildToggleCard(
+            icon: Icons.battery_alert,
+            iconColor: GivLocalColors.home,
+            title: 'DC Discharge',
+            subtitle: 'Discharge battery during peak hours',
+            value: _dischargeEnabled,
+            onChanged: (v) {
+              setState(() => _dischargeEnabled = v);
+              _writeSetting(SettingIds.enableDischarge, v);
+            },
           ),
+          if (_dischargeEnabled) ...[
+            const SizedBox(height: 8),
+            ScheduleSlotCard(
+              slotNumber: 1,
+              startTime: _dischargeStart,
+              endTime: _dischargeEnd,
+              targetSoc: _dischargeTargetSoc,
+              enabled: _dischargeEnabled,
+              onToggle: (v) {
+                setState(() => _dischargeEnabled = v);
+                _writeSetting(SettingIds.enableDischarge, v);
+              },
+            ),
+          ],
           const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: value ? iconColor.withAlpha(15) : GivLocalColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: value ? iconColor.withAlpha(60) : GivLocalColors.cardBorder),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: GivLocalColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(subtitle, style: const TextStyle(color: GivLocalColors.textMuted, fontSize: 12)),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: iconColor,
+          ),
         ],
       ),
     );
@@ -285,7 +282,7 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
       decoration: BoxDecoration(
         color: GivLocalColors.card,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: GivLocalColors.cardBorder),
       ),
       child: Column(
@@ -294,21 +291,9 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Minimum charge to keep in battery',
-                style: TextStyle(
-                  color: GivLocalColors.textSecondary,
-                  fontSize: 13,
-                ),
-              ),
-              Text(
-                '${_batteryReserve.round()}%',
-                style: const TextStyle(
-                  color: GivLocalColors.textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              const Text('Minimum charge to keep', style: TextStyle(color: GivLocalColors.textSecondary, fontSize: 13)),
+              Text('${_batteryReserve.round()}%',
+                  style: const TextStyle(color: GivLocalColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: 6),
@@ -326,27 +311,15 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
               min: 4,
               max: 100,
               divisions: 96,
-              onChanged: _onReserveChanged,
-              onChangeEnd: _onReserveChangeEnd,
+              onChanged: (v) => setState(() => _batteryReserve = v),
+              onChangeEnd: (v) => _writeSetting(SettingIds.batteryReserve, v.round()),
             ),
           ),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                '4%',
-                style: TextStyle(
-                  color: GivLocalColors.textMuted,
-                  fontSize: 11,
-                ),
-              ),
-              Text(
-                '100%',
-                style: TextStyle(
-                  color: GivLocalColors.textMuted,
-                  fontSize: 11,
-                ),
-              ),
+            children: [
+              Text('4%', style: TextStyle(color: GivLocalColors.textMuted, fontSize: 11)),
+              Text('100%', style: TextStyle(color: GivLocalColors.textMuted, fontSize: 11)),
             ],
           ),
         ],
@@ -363,12 +336,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
-        color: GivLocalColors.textMuted,
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 1.2,
-      ),
+      style: const TextStyle(color: GivLocalColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.2),
     );
   }
 }
