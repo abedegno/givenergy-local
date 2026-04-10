@@ -20,9 +20,7 @@ def _get(data: dict, key: str, default=0):
 
 def transform_data_point(timestamp: int, data: dict) -> dict:
     """Convert a unix timestamp and register dict to the cloud data-point JSON shape."""
-    time_str = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
+    time_str = datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     status_raw = data.get("status")
     status_int = int(status_raw) if status_raw is not None else 0

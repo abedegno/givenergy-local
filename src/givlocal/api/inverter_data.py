@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import math
 from datetime import date, datetime, timezone
 from typing import Optional
 
@@ -77,9 +76,8 @@ async def data_points(
     items = [transform_data_point(row["timestamp"], json.loads(row["data"])) for row in rows]
 
     total = len(items)
-    last_page = max(1, math.ceil(total / pageSize))
     start_idx = (page - 1) * pageSize
-    page_items = items[start_idx: start_idx + pageSize]
+    page_items = items[start_idx : start_idx + pageSize]
 
     return {
         "data": page_items,
@@ -106,7 +104,10 @@ async def inverter_events(
 
     conn = app_state.token_store._conn
 
-    query = "SELECT id, inverter_serial, timestamp, event_type, description, cleared_at FROM events WHERE inverter_serial = ?"
+    query = (
+        "SELECT id, inverter_serial, timestamp, event_type, description, cleared_at"
+        " FROM events WHERE inverter_serial = ?"
+    )
     params: list = [serial]
 
     if not cleared:

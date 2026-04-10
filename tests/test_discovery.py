@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
-from givlocal.discovery import discover_inverters, generate_ip_range, scan_for_inverters
+from givlocal.discovery import generate_ip_range, scan_for_inverters
 
 
 def test_generate_ip_range():
