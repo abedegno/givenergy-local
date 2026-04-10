@@ -56,3 +56,57 @@ def test_meter_data_latest(client):
 def test_unknown_inverter_returns_404(client):
     response = client.get("/v1/inverter/UNKNOWN/system-data-latest")
     assert response.status_code == 404
+
+
+def test_data_points_returns_paginated(client):
+    import time
+
+    from givlocal.main import app_state
+
+    store = app_state.metrics_store
+    ts = int(time.time())
+    for i in range(5):
+        store.write_data_point("FA2424G403", ts - (i * 300), {"status": 1, "p_pv1": 100 + i, "p_pv2": 50})
+
+    from datetime import date
+
+    today = date.today().isoformat()
+    response = client.get(f"/v1/inverter/FA2424G403/data-points/{today}")
+    assert response.status_code == 200
+    body = response.json()
+    assert "data" in body
+    assert isinstance(body["data"], list)
+    assert len(body["data"]) > 0
+    first = body["data"][0]
+    assert "power" in first
+    assert "today" in first
+    meta = body["meta"]
+    assert meta["total"] == 5
+    assert meta["current_page"] == 1
+
+
+def test_events_returns_list(client):
+    response = client.get("/v1/inverter/FA2424G403/events")
+    assert response.status_code == 200
+    body = response.json()
+    assert "data" in body
+    assert isinstance(body["data"], list)
+
+
+def test_health_returns_checks(client):
+    response = client.get("/v1/inverter/FA2424G403/health")
+    assert response.status_code == 200
+    body = response.json()
+    checks = body["data"]["checks"]
+    assert isinstance(checks, list)
+    assert len(checks) > 0
+    for check in checks:
+        assert "name" in check
+        assert "value" in check
+        assert "status" in check
+        assert "unit" in check
+
+
+def test_health_unknown_inverter(client):
+    response = client.get("/v1/inverter/UNKNOWN/health")
+    assert response.status_code == 404
