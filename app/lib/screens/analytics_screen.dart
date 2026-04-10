@@ -12,7 +12,8 @@ class AnalyticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    final dataPointsAsync = ref.watch(dataPointsProvider);
+    final dataPointsAsync = ref.watch(filteredDataPointsProvider);
+    final selectedRange = ref.watch(timeRangeProvider);
     final liveData = ref.watch(liveDataProvider);
     final meter = liveData.meter;
 
@@ -71,6 +72,22 @@ class AnalyticsScreen extends ConsumerWidget {
                               selectedDate.add(const Duration(days: 1));
                         },
                 ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Time range selector
+            Row(
+              children: [
+                _RangeChip(label: '1h', hours: 1, selected: selectedRange, ref: ref),
+                const SizedBox(width: 6),
+                _RangeChip(label: '3h', hours: 3, selected: selectedRange, ref: ref),
+                const SizedBox(width: 6),
+                _RangeChip(label: '6h', hours: 6, selected: selectedRange, ref: ref),
+                const SizedBox(width: 6),
+                _RangeChip(label: '12h', hours: 12, selected: selectedRange, ref: ref),
+                const SizedBox(width: 6),
+                _RangeChip(label: 'All Day', hours: 0, selected: selectedRange, ref: ref),
               ],
             ),
             const SizedBox(height: 12),
@@ -282,6 +299,46 @@ class _Divider extends StatelessWidget {
       indent: 16,
       endIndent: 16,
       color: GivLocalColors.cardBorder,
+    );
+  }
+}
+
+class _RangeChip extends StatelessWidget {
+  final String label;
+  final int hours;
+  final int selected;
+  final WidgetRef ref;
+
+  const _RangeChip({
+    required this.label,
+    required this.hours,
+    required this.selected,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selected == hours;
+    return GestureDetector(
+      onTap: () => ref.read(timeRangeProvider.notifier).state = hours,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? GivLocalColors.accent : GivLocalColors.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? GivLocalColors.accent : GivLocalColors.cardBorder,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : GivLocalColors.textSecondary,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
     );
   }
 }
