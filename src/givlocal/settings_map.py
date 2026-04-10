@@ -183,12 +183,12 @@ def validate_setting_value(setting: dict, value: Any) -> bool:
             return False
         for rule in validation_rules:
             if rule.startswith("between:"):
-                parts = rule[len("between:"):].split(",")
+                parts = rule[len("between:") :].split(",")
                 lo, hi = int(parts[0]), int(parts[1])
                 if not (lo <= value <= hi):
                     return False
             elif rule.startswith("in:"):
-                allowed = [int(v.strip()) for v in rule[len("in:"):].split(",")]
+                allowed = [int(v.strip()) for v in rule[len("in:") :].split(",")]
                 if value not in allowed:
                     return False
         return True

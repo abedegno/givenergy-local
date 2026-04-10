@@ -15,13 +15,13 @@ def client(tmp_path):
     from givlocal.auth import TokenStore
     from givlocal.database import init_app_db
     from givlocal.main import InverterState, app, app_state
-    from givlocal.settings_map import load_settings_map
+    from givlocal.settings_map import load_settings_from_cloud_dump
     from tests.fixtures.register_data import make_inverter_cache
 
     app_state.auth_required = False
     conn = init_app_db(str(tmp_path / "app.db"))
     app_state.token_store = TokenStore(conn)
-    app_state.settings_map = load_settings_map("settings")
+    app_state.settings = load_settings_from_cloud_dump("cloud-data/settings.json")
 
     cache = make_inverter_cache()
     mock_plant = MagicMock()

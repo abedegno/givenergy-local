@@ -37,7 +37,7 @@ class AppState:
     token_store: Optional[TokenStore] = None
     metrics_store: Optional[MetricsStore] = None
     inverters: dict[str, InverterState] = field(default_factory=dict)
-    settings_map: dict = field(default_factory=dict)
+    settings: dict = field(default_factory=dict)
     auth_required: bool = True
 
 
@@ -80,10 +80,19 @@ async def lifespan(app: FastAPI):
             plaintext,
         )
 
-    # 3b. Load settings map
-    from .settings_map import load_settings_map
+    # 3b. Load settings from cloud dump
+    from pathlib import Path
 
-    app_state.settings_map = load_settings_map("settings")
+    from .settings_map import load_settings_from_cloud_dump
+
+    cloud_data_dir = Path("cloud-data")
+    if cloud_data_dir.exists():
+        for settings_file in cloud_data_dir.glob("*.json"):
+            app_state.settings = load_settings_from_cloud_dump(str(settings_file))
+            logger.info("Loaded %d settings from %s", len(app_state.settings), settings_file.name)
+            break
+    if not app_state.settings:
+        logger.warning("No settings found in cloud-data/. Run cloud_dump --settings-only first.")
 
     # 4. Connect to inverters
     from .inverter_manager import InverterManager

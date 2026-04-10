@@ -9,8 +9,6 @@ import pytest
 from givlocal.settings_map import (
     convert_from_register_value,
     convert_to_register_value,
-    get_setting,
-    list_settings,
     load_settings_from_cloud_dump,
     resolve_register_name,
     resolve_setting_type,
