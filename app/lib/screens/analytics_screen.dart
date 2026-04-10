@@ -12,8 +12,29 @@ class AnalyticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedDate = ref.watch(selectedDateProvider);
-    final dataPointsAsync = ref.watch(filteredDataPointsProvider);
+    final rawDataAsync = ref.watch(dataPointsProvider);
     final selectedRange = ref.watch(timeRangeProvider);
+
+    // Filter data points by time range
+    final dataPointsAsync = rawDataAsync.whenData((points) {
+      if (selectedRange == 0 || points.isEmpty) return points;
+      DateTime? latest;
+      for (final dp in points) {
+        final t = dp['time'] as String? ?? '';
+        if (t.isEmpty) continue;
+        try {
+          final dt = DateTime.parse(t);
+          if (latest == null || dt.isAfter(latest)) latest = dt;
+        } catch (_) {}
+      }
+      if (latest == null) return points;
+      final cutoff = latest.subtract(Duration(hours: selectedRange));
+      return points.where((dp) {
+        final t = dp['time'] as String? ?? '';
+        if (t.isEmpty) return false;
+        try { return DateTime.parse(t).isAfter(cutoff); } catch (_) { return false; }
+      }).toList();
+    });
     final liveData = ref.watch(liveDataProvider);
     final meter = liveData.meter;
 
