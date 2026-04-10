@@ -2,7 +2,7 @@
 
 
 def test_paginate_first_page():
-    from givenergy_local.api.pagination import paginate
+    from givlocal.api.pagination import paginate
 
     items = list(range(25))
     result = paginate(items, page=1, per_page=10, base_url="/test")
@@ -17,7 +17,7 @@ def test_paginate_first_page():
 
 
 def test_paginate_last_page():
-    from givenergy_local.api.pagination import paginate
+    from givlocal.api.pagination import paginate
 
     items = list(range(25))
     result = paginate(items, page=3, per_page=10, base_url="/test")

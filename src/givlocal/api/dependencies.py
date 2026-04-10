@@ -10,7 +10,7 @@ async def require_auth(authorization: str = Header(None)) -> None:
 
     Checks app_state.auth_required; if disabled, allows all requests through.
     """
-    from givenergy_local.main import app_state
+    from givlocal.main import app_state
 
     if not app_state.auth_required:
         return
@@ -28,7 +28,7 @@ async def get_inverter(inverter_serial_number: str):
 
     Raises 404 if the inverter is not found.
     """
-    from givenergy_local.main import app_state
+    from givlocal.main import app_state
 
     inv_state = app_state.inverters.get(inverter_serial_number)
     if not inv_state:

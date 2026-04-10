@@ -1,5 +1,5 @@
 def test_init_app_db_creates_tables(tmp_path):
-    from givenergy_local.database import init_app_db
+    from givlocal.database import init_app_db
 
     db_path = str(tmp_path / "app.db")
     conn = init_app_db(db_path)
@@ -14,7 +14,7 @@ def test_init_app_db_creates_tables(tmp_path):
 
 
 def test_init_app_db_is_idempotent(tmp_path):
-    from givenergy_local.database import init_app_db
+    from givlocal.database import init_app_db
 
     db_path = str(tmp_path / "app.db")
     conn1 = init_app_db(db_path)

@@ -7,7 +7,7 @@ Dumps: account info, inverter settings, historical data points, meter data,
 events, communication devices, and site data.
 
 Usage:
-    python -m givenergy_local.cli.cloud_dump --token YOUR_API_TOKEN --output ./cloud-dump
+    python -m givlocal.cli.cloud_dump --token YOUR_API_TOKEN --output ./cloud-dump
 
 This tool is rate-limit aware (300 req/min) and will back off if throttled.
 """
@@ -282,7 +282,7 @@ class CloudDumper:
 def main():
     parser = argparse.ArgumentParser(
         description="Archive your GivEnergy Cloud data before it goes offline.",
-        epilog="Example: python -m givenergy_local.cli.cloud_dump --token eyJ... --output ./cloud-dump",
+        epilog="Example: python -m givlocal.cli.cloud_dump --token eyJ... --output ./cloud-dump",
     )
     parser.add_argument("--token", required=True, help="GivEnergy Cloud API token (Bearer token)")
     parser.add_argument("--output", default="./cloud-dump", help="Output directory (default: ./cloud-dump)")

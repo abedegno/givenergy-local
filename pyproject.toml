@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "givenergy-local"
+name = "givlocal"
 version = "0.1.0"
 description = "Self-hosted replacement for the GivEnergy Cloud API"
 requires-python = ">=3.11"
@@ -28,7 +28,7 @@ dev = [
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/givenergy_local"]
+packages = ["src/givlocal"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

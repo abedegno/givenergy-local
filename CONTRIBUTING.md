@@ -1,4 +1,4 @@
-# Contributing to givenergy-local
+# Contributing to GivLocal
 
 ## Prerequisites
 
@@ -8,8 +8,8 @@
 ## Dev Setup
 
 ```bash
-git clone https://github.com/your-org/givenergy-local.git
-cd givenergy-local
+git clone https://github.com/your-org/GivLocal.git
+cd GivLocal
 python -m venv .venv
 source .venv/bin/activate
 

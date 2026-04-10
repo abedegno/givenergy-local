@@ -12,10 +12,10 @@ from tests.fixtures.register_data import make_battery_cache, make_inverter_cache
 
 @pytest.fixture
 def e2e_client(tmp_path):
-    from givenergy_local.auth import TokenStore, generate_token
-    from givenergy_local.database import init_app_db
-    from givenergy_local.main import InverterState, app, app_state
-    from givenergy_local.metrics_store import MetricsStore
+    from givlocal.auth import TokenStore, generate_token
+    from givlocal.database import init_app_db
+    from givlocal.main import InverterState, app, app_state
+    from givlocal.metrics_store import MetricsStore
 
     app_state.auth_required = True
     conn = init_app_db(str(tmp_path / "app.db"))

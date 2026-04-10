@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a problem with givenergy-local
+about: Report a problem with GivLocal
 labels: bug
 ---
 
@@ -17,5 +17,5 @@ labels: bug
 **Environment**
 - OS:
 - Python version:
-- givenergy-local version:
+- GivLocal version:
 - Docker: yes/no

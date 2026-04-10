@@ -10,4 +10,4 @@ COPY config.example.yaml config.example.yaml
 RUN pip install --no-cache-dir .
 
 EXPOSE 8099
-CMD ["uvicorn", "givenergy_local.main:app", "--host", "0.0.0.0", "--port", "8099"]
+CMD ["uvicorn", "givlocal.main:app", "--host", "0.0.0.0", "--port", "8099"]

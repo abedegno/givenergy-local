@@ -9,8 +9,8 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_connect_and_detect_populates_state():
-    from givenergy_local.config import InverterConfig
-    from givenergy_local.inverter_manager import InverterManager
+    from givlocal.config import InverterConfig
+    from givlocal.inverter_manager import InverterManager
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -20,7 +20,7 @@ async def test_connect_and_detect_populates_state():
     mock_plant.number_batteries = 1
     mock_client.plant = mock_plant
 
-    with patch("givenergy_local.inverter_manager.Client", return_value=mock_client):
+    with patch("givlocal.inverter_manager.Client", return_value=mock_client):
         manager = InverterManager()
         configs = [InverterConfig(host="192.168.86.44")]
         await manager.connect_all(configs)
@@ -33,13 +33,13 @@ async def test_connect_and_detect_populates_state():
 
 @pytest.mark.asyncio
 async def test_connect_handles_unreachable_inverter():
-    from givenergy_local.config import InverterConfig
-    from givenergy_local.inverter_manager import InverterManager
+    from givlocal.config import InverterConfig
+    from givlocal.inverter_manager import InverterManager
 
     mock_client = AsyncMock()
     mock_client.connect.side_effect = OSError("Connection refused")
 
-    with patch("givenergy_local.inverter_manager.Client", return_value=mock_client):
+    with patch("givlocal.inverter_manager.Client", return_value=mock_client):
         manager = InverterManager()
         configs = [InverterConfig(host="10.0.0.99")]
         await manager.connect_all(configs)
@@ -49,8 +49,8 @@ async def test_connect_handles_unreachable_inverter():
 
 @pytest.mark.asyncio
 async def test_close_all_clears_state():
-    from givenergy_local.config import InverterConfig
-    from givenergy_local.inverter_manager import InverterManager
+    from givlocal.config import InverterConfig
+    from givlocal.inverter_manager import InverterManager
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -58,7 +58,7 @@ async def test_close_all_clears_state():
     mock_plant.number_batteries = 0
     mock_client.plant = mock_plant
 
-    with patch("givenergy_local.inverter_manager.Client", return_value=mock_client):
+    with patch("givlocal.inverter_manager.Client", return_value=mock_client):
         manager = InverterManager()
         await manager.connect_all([InverterConfig(host="192.168.1.1")])
 
@@ -70,8 +70,8 @@ async def test_close_all_clears_state():
 
 @pytest.mark.asyncio
 async def test_connect_multiple_inverters():
-    from givenergy_local.config import InverterConfig
-    from givenergy_local.inverter_manager import InverterManager
+    from givlocal.config import InverterConfig
+    from givlocal.inverter_manager import InverterManager
 
     def make_client(serial: str) -> AsyncMock:
         client = AsyncMock()
@@ -85,7 +85,7 @@ async def test_connect_multiple_inverters():
     client_iter = iter(clients)
 
     with patch(
-        "givenergy_local.inverter_manager.Client",
+        "givlocal.inverter_manager.Client",
         side_effect=lambda **kwargs: next(client_iter),
     ):
         manager = InverterManager()

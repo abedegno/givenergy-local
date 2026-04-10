@@ -1,4 +1,4 @@
-"""FastAPI application entry point for GivEnergy Local API."""
+"""FastAPI application entry point for GivLocal API."""
 
 from __future__ import annotations
 
@@ -10,10 +10,10 @@ from typing import Optional
 
 from fastapi import FastAPI
 
-from givenergy_local.auth import TokenStore, generate_token
-from givenergy_local.config import AppConfig, load_config
-from givenergy_local.database import init_app_db
-from givenergy_local.metrics_store import MetricsStore
+from givlocal.auth import TokenStore, generate_token
+from givlocal.config import AppConfig, load_config
+from givlocal.database import init_app_db
+from givlocal.metrics_store import MetricsStore
 
 logger = logging.getLogger(__name__)
 
@@ -122,11 +122,11 @@ async def lifespan(app: FastAPI):
     app_state.metrics_store.close()
     app_db_conn.close()
 
-    logger.info("GivEnergy Local API shut down")
+    logger.info("GivLocal API shut down")
 
 
 app = FastAPI(
-    title="GivEnergy Local API",
+    title="GivLocal API",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -145,4 +145,4 @@ app.include_router(prometheus_router)
 @app.get("/")
 async def root():
     """Health-check / discovery endpoint."""
-    return {"name": "GivEnergy Local API", "version": "0.1.0"}
+    return {"name": "GivLocal API", "version": "0.1.0"}

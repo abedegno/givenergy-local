@@ -16,8 +16,8 @@ class WriteSettingRequest(BaseModel):
 @router.get("/inverter/{serial}/settings")
 async def list_inverter_settings(serial: str):
     """Return available settings for the inverter."""
-    from givenergy_local.main import app_state
-    from givenergy_local.settings_map import list_settings
+    from givlocal.main import app_state
+    from givlocal.settings_map import list_settings
 
     inv_state = app_state.inverters.get(serial)
     if not inv_state:
@@ -41,8 +41,8 @@ async def read_inverter_setting(serial: str, setting_id: int):
     """Read the current value of a setting from the in-memory register cache."""
     from givenergy_modbus_async.model.register import HR
 
-    from givenergy_local.main import app_state
-    from givenergy_local.settings_map import convert_from_register_value, get_setting
+    from givlocal.main import app_state
+    from givlocal.settings_map import convert_from_register_value, get_setting
 
     inv_state = app_state.inverters.get(serial)
     if not inv_state:
@@ -83,8 +83,8 @@ async def write_inverter_setting(serial: str, setting_id: int, body: WriteSettin
     from givenergy_modbus_async.model.inverter import Inverter
     from givenergy_modbus_async.pdu import WriteHoldingRegisterRequest
 
-    from givenergy_local.main import app_state
-    from givenergy_local.settings_map import (
+    from givlocal.main import app_state
+    from givlocal.settings_map import (
         convert_to_register_value,
         get_setting,
         validate_setting_value,

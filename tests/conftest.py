@@ -1,4 +1,4 @@
-"""Shared pytest fixtures for givenergy-local tests."""
+"""Shared pytest fixtures for givlocal tests."""
 
 import textwrap
 

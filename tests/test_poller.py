@@ -10,9 +10,9 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_poll_once_stores_data_point(tmp_path):
-    from givenergy_local.main import InverterState
-    from givenergy_local.metrics_store import MetricsStore
-    from givenergy_local.poller import poll_once
+    from givlocal.main import InverterState
+    from givlocal.metrics_store import MetricsStore
+    from givlocal.poller import poll_once
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -45,9 +45,9 @@ async def test_poll_once_stores_data_point(tmp_path):
 
 @pytest.mark.asyncio
 async def test_poll_once_handles_refresh_failure(tmp_path):
-    from givenergy_local.main import InverterState
-    from givenergy_local.metrics_store import MetricsStore
-    from givenergy_local.poller import poll_once
+    from givlocal.main import InverterState
+    from givlocal.metrics_store import MetricsStore
+    from givlocal.poller import poll_once
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -70,9 +70,9 @@ async def test_poll_once_handles_refresh_failure(tmp_path):
 
 @pytest.mark.asyncio
 async def test_poll_once_skips_none_inverter(tmp_path):
-    from givenergy_local.main import InverterState
-    from givenergy_local.metrics_store import MetricsStore
-    from givenergy_local.poller import poll_once
+    from givlocal.main import InverterState
+    from givlocal.metrics_store import MetricsStore
+    from givlocal.poller import poll_once
 
     mock_client = AsyncMock()
     mock_plant = MagicMock()
@@ -95,9 +95,9 @@ async def test_poll_once_skips_none_inverter(tmp_path):
 
 @pytest.mark.asyncio
 async def test_poll_once_updates_state_plant(tmp_path):
-    from givenergy_local.main import InverterState
-    from givenergy_local.metrics_store import MetricsStore
-    from givenergy_local.poller import poll_once
+    from givlocal.main import InverterState
+    from givlocal.metrics_store import MetricsStore
+    from givlocal.poller import poll_once
 
     mock_client = AsyncMock()
     old_plant = MagicMock()
@@ -124,9 +124,9 @@ async def test_poll_once_updates_state_plant(tmp_path):
 @pytest.mark.asyncio
 async def test_poll_loop_runs_and_stops(tmp_path):
     """poll_loop calls poll_once for each inverter and iterates."""
-    from givenergy_local.main import InverterState
-    from givenergy_local.metrics_store import MetricsStore
-    from givenergy_local.poller import poll_loop
+    from givlocal.main import InverterState
+    from givlocal.metrics_store import MetricsStore
+    from givlocal.poller import poll_loop
 
     call_count = 0
 
@@ -154,7 +154,7 @@ async def test_poll_loop_runs_and_stops(tmp_path):
     )
     store = MetricsStore(str(tmp_path / "metrics.db"))
 
-    with patch("givenergy_local.poller.asyncio.sleep", side_effect=fake_sleep):
+    with patch("givlocal.poller.asyncio.sleep", side_effect=fake_sleep):
         with pytest.raises(asyncio.CancelledError):
             await poll_loop({"LOOP001": state}, store, interval=1, full_refresh_interval=300)
 

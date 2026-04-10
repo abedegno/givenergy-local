@@ -10,10 +10,10 @@ def client(tmp_path):
 
     from givenergy_modbus_async.model.inverter import Inverter
 
-    from givenergy_local.auth import TokenStore
-    from givenergy_local.database import init_app_db
-    from givenergy_local.main import InverterState, app, app_state
-    from givenergy_local.metrics_store import MetricsStore
+    from givlocal.auth import TokenStore
+    from givlocal.database import init_app_db
+    from givlocal.main import InverterState, app, app_state
+    from givlocal.metrics_store import MetricsStore
     from tests.fixtures.register_data import make_inverter_cache
 
     app_state.auth_required = False

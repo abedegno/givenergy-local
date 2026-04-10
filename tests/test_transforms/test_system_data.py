@@ -3,7 +3,7 @@
 import pytest
 from givenergy_modbus_async.model.inverter import Inverter
 
-from givenergy_local.transforms.system_data import transform_system_data
+from givlocal.transforms.system_data import transform_system_data
 from tests.fixtures.register_data import make_inverter_cache
 
 

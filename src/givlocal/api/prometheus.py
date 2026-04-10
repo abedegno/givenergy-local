@@ -27,7 +27,7 @@ METRICS = [
 @router.get("/metrics", response_class=PlainTextResponse)
 async def prometheus_metrics():
     """Expose current inverter state in Prometheus format. No auth required."""
-    from givenergy_local.main import app_state
+    from givlocal.main import app_state
 
     lines = []
     for serial, inv_state in app_state.inverters.items():

@@ -1,5 +1,5 @@
 def test_generate_token_returns_plaintext_and_hash():
-    from givenergy_local.auth import generate_token
+    from givlocal.auth import generate_token
 
     plaintext, token_hash = generate_token()
     assert len(plaintext) == 64  # 32 bytes hex
@@ -8,7 +8,7 @@ def test_generate_token_returns_plaintext_and_hash():
 
 
 def test_verify_token_matches():
-    from givenergy_local.auth import generate_token, verify_token
+    from givlocal.auth import generate_token, verify_token
 
     plaintext, token_hash = generate_token()
     assert verify_token(plaintext, token_hash) is True
@@ -16,8 +16,8 @@ def test_verify_token_matches():
 
 
 def test_token_store_crud(tmp_path):
-    from givenergy_local.auth import TokenStore, generate_token
-    from givenergy_local.database import init_app_db
+    from givlocal.auth import TokenStore, generate_token
+    from givlocal.database import init_app_db
 
     conn = init_app_db(str(tmp_path / "app.db"))
     store = TokenStore(conn)

@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from givenergy_local.settings_map import (
+from givlocal.settings_map import (
     convert_from_register_value,
     convert_to_register_value,
     get_setting,

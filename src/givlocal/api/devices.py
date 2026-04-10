@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from givenergy_local.api.dependencies import require_auth
-from givenergy_local.api.schemas import DataResponse
+from givlocal.api.dependencies import require_auth
+from givlocal.api.schemas import DataResponse
 
 router = APIRouter(tags=["Communication Devices"])
 
@@ -53,7 +53,7 @@ def _build_device_info(inv_state) -> dict:
 @router.get("/communication-device", dependencies=[Depends(require_auth)])
 async def list_devices():
     """Return all connected inverters as communication devices."""
-    from givenergy_local.main import app_state
+    from givlocal.main import app_state
 
     devices = [_build_device_info(inv_state) for inv_state in app_state.inverters.values()]
     return DataResponse(data=devices)
@@ -62,7 +62,7 @@ async def list_devices():
 @router.get("/communication-device/{serial_number}", dependencies=[Depends(require_auth)])
 async def get_device(serial_number: str):
     """Return a single device by its data adapter serial. 404 if not found."""
-    from givenergy_local.main import app_state
+    from givlocal.main import app_state
 
     for inv_state in app_state.inverters.values():
         if inv_state.plant.data_adapter_serial_number == serial_number:

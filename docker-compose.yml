@@ -1,5 +1,5 @@
 services:
-  givenergy-local:
+  givlocal:
     build: .
     ports:
       - "8099:8099"

@@ -4,7 +4,7 @@ import os
 import tempfile
 import textwrap
 
-from givenergy_local.config import AppConfig, load_config
+from givlocal.config import AppConfig, load_config
 
 
 def test_config_loads_from_yaml():

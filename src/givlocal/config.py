@@ -1,4 +1,4 @@
-"""Configuration loading for givenergy-local."""
+"""Configuration loading for givlocal."""
 
 from __future__ import annotations
 

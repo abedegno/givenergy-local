@@ -1,4 +1,4 @@
-# GivEnergy Local Cloud API
+# GivLocal Cloud API
 
 Self-hosted replacement for the GivEnergy Cloud API. Communicates with your
 GivEnergy inverter locally via Modbus TCP - no cloud dependency.
