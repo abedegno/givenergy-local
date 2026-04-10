@@ -61,7 +61,7 @@ class FlowPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const nodeRadius = 32.0;
+    const nodeRadius = 28.0;
 
     // Helper: shorten line so arrow sits outside node circles
     Offset shorten(Offset from, Offset to, double margin) {

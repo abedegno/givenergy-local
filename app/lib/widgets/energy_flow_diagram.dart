@@ -96,15 +96,13 @@ class _NodeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const nodeRadius = 32.0;
-    const totalHeight = nodeRadius * 2 + 36; // circle + label + value
+    const nodeRadius = 28.0;
     const totalWidth = 90.0;
 
     return Positioned(
       left: center.dx - totalWidth / 2,
       top: center.dy - nodeRadius,
       width: totalWidth,
-      height: totalHeight,
       child: Semantics(
         label: '$label: $value',
         child: Column(
@@ -118,7 +116,7 @@ class _NodeWidget extends StatelessWidget {
                 color: color.withValues(alpha: 0.15),
                 border: Border.all(color: color, width: 2),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(height: 4),
             Text(
