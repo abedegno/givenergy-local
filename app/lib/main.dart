@@ -2,21 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'theme.dart';
+import 'services/storage_service.dart';
+import 'providers/connection_provider.dart';
+import 'providers/live_data_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/schedules_screen.dart';
 import 'screens/settings_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final storage = StorageService();
+  await storage.init();
+
   runApp(
-    const ProviderScope(
-      child: GivLocalApp(),
+    ProviderScope(
+      overrides: [
+        storageServiceProvider.overrideWithValue(storage),
+      ],
+      child: const GivLocalApp(),
     ),
   );
 }
 
-class GivLocalApp extends StatelessWidget {
+class GivLocalApp extends ConsumerStatefulWidget {
   const GivLocalApp({super.key});
+
+  @override
+  ConsumerState<GivLocalApp> createState() => _GivLocalAppState();
+}
+
+class _GivLocalAppState extends ConsumerState<GivLocalApp> {
+  @override
+  void initState() {
+    super.initState();
+    _initConnection();
+  }
+
+  Future<void> _initConnection() async {
+    final api = ref.read(apiServiceProvider);
+    await api.connect();
+    ref.read(connectionStateProvider.notifier).state = api.connectionState;
+
+    final storage = ref.read(storageServiceProvider);
+    final serial = storage.inverterSerial;
+    if (serial.isNotEmpty) {
+      ref.read(liveDataProvider.notifier).startPolling(serial);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
