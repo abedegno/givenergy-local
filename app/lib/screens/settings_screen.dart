@@ -5,6 +5,7 @@ import '../services/api_service.dart' as api_svc;
 import '../theme.dart';
 import '../providers/connection_provider.dart';
 import '../providers/live_data_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/device.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -310,6 +311,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildAppearanceCard() {
+    final currentMode = ref.watch(themeModeProvider);
     return Container(
       decoration: BoxDecoration(
         color: GivLocalColors.card,
@@ -330,11 +332,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              _ThemeChip(label: 'System', selected: false),
+              _ThemeChip(
+                label: 'System',
+                selected: currentMode == AppThemeMode.system,
+                onTap: () => ref.read(themeModeProvider.notifier).setMode(AppThemeMode.system),
+              ),
               const SizedBox(width: 8),
-              _ThemeChip(label: 'Dark', selected: true),
+              _ThemeChip(
+                label: 'Dark',
+                selected: currentMode == AppThemeMode.dark,
+                onTap: () => ref.read(themeModeProvider.notifier).setMode(AppThemeMode.dark),
+              ),
               const SizedBox(width: 8),
-              _ThemeChip(label: 'Light', selected: false),
+              _ThemeChip(
+                label: 'Light',
+                selected: currentMode == AppThemeMode.light,
+                onTap: () => ref.read(themeModeProvider.notifier).setMode(AppThemeMode.light),
+              ),
             ],
           ),
         ],
@@ -493,28 +507,29 @@ class _InfoRow extends StatelessWidget {
 class _ThemeChip extends StatelessWidget {
   final String label;
   final bool selected;
-  const _ThemeChip({required this.label, required this.selected});
+  final VoidCallback? onTap;
+  const _ThemeChip({required this.label, required this.selected, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(
-        color: selected ? GivLocalColors.accent : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color:
-              selected ? GivLocalColors.accent : GivLocalColors.cardBorder,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? GivLocalColors.accent : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? GivLocalColors.accent : GivLocalColors.cardBorder,
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: selected
-              ? Colors.white
-              : GivLocalColors.textSecondary,
-          fontSize: 13,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : GivLocalColors.textSecondary,
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+          ),
         ),
       ),
     );

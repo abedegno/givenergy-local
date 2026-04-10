@@ -5,6 +5,7 @@ import 'theme.dart';
 import 'services/storage_service.dart';
 import 'providers/connection_provider.dart';
 import 'providers/live_data_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/analytics_screen.dart';
 import 'screens/schedules_screen.dart';
@@ -53,10 +54,14 @@ class _GivLocalAppState extends ConsumerState<GivLocalApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'GivLocal',
       debugShowCheckedModeBanner: false,
-      theme: darkTheme,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: toFlutterThemeMode(themeMode),
       home: const AppShell(),
     );
   }

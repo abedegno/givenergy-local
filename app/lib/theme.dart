@@ -62,3 +62,43 @@ final ThemeData darkTheme = ThemeData(
   ),
   useMaterial3: true,
 );
+
+final ThemeData lightTheme = ThemeData(
+  brightness: Brightness.light,
+  scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+  colorScheme: const ColorScheme.light(
+    primary: GivLocalColors.accent,
+    secondary: GivLocalColors.solar,
+    surface: Colors.white,
+    onPrimary: Colors.white,
+    onSecondary: Color(0xFF0F172A),
+    onSurface: Color(0xFF1E293B),
+  ),
+  textTheme: const TextTheme(
+    bodyLarge: TextStyle(color: Color(0xFF1E293B)),
+    bodyMedium: TextStyle(color: Color(0xFF475569)),
+    bodySmall: TextStyle(color: Color(0xFF64748B)),
+    titleLarge: TextStyle(color: Color(0xFF1E293B)),
+    titleMedium: TextStyle(color: Color(0xFF1E293B)),
+    titleSmall: TextStyle(color: Color(0xFF475569)),
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFFF8FAFC),
+    foregroundColor: Color(0xFF1E293B),
+    elevation: 0,
+  ),
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    backgroundColor: Colors.white,
+    selectedItemColor: GivLocalColors.accent,
+    unselectedItemColor: Color(0xFF94A3B8),
+    type: BottomNavigationBarType.fixed,
+  ),
+  cardTheme: CardThemeData(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+      side: const BorderSide(color: Color(0xFFE2E8F0)),
+    ),
+  ),
+  useMaterial3: true,
+);

@@ -8,6 +8,7 @@ class StorageService {
   static const _keyApiToken = 'api_token';
   static const _keyInverterSerial = 'inverter_serial';
   static const _keyRemoteAccessType = 'remote_access_type';
+  static const _keyThemeMode = 'theme_mode';
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -29,6 +30,9 @@ class StorageService {
   String get remoteAccessType => _prefs.getString(_keyRemoteAccessType) ?? '';
   set remoteAccessType(String value) =>
       _prefs.setString(_keyRemoteAccessType, value);
+
+  String get themeMode => _prefs.getString(_keyThemeMode) ?? 'system';
+  set themeMode(String value) => _prefs.setString(_keyThemeMode, value);
 
   bool get isConfigured => localUrl.isNotEmpty && apiToken.isNotEmpty;
 }
