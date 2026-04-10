@@ -9,7 +9,9 @@ def transform_system_data(inv) -> dict:
     """Convert an Inverter model object to the cloud /system-data-latest JSON shape."""
     system_time = inv.get("system_time")
     if system_time is not None:
-        time_str = system_time.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        # The inverter's system_time is local time (no timezone info).
+        # Output as naive ISO format - don't claim UTC.
+        time_str = system_time.isoformat()
     else:
         time_str = None
 

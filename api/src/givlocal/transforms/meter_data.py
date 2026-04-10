@@ -7,7 +7,7 @@ def transform_meter_data(inv) -> dict:
     """Convert an Inverter model object to the cloud /meter-data-latest JSON shape."""
     system_time = inv.get("system_time")
     if system_time is not None:
-        time_str = system_time.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+        time_str = system_time.isoformat()
     else:
         time_str = None
 
