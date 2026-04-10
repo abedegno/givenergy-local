@@ -1,7 +1,5 @@
 """Transform an Inverter model into the GivEnergy Cloud /system-data-latest shape."""
 
-from datetime import timezone
-
 _STATUS_MAP = {0: "Waiting", 1: "Normal", 2: "Warning", 3: "Fault", 4: "Updating"}
 
 

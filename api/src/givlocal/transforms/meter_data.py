@@ -1,7 +1,5 @@
 """Transform an Inverter model into the GivEnergy Cloud /meter-data-latest shape."""
 
-from datetime import timezone
-
 
 def transform_meter_data(inv) -> dict:
     """Convert an Inverter model object to the cloud /meter-data-latest JSON shape."""
