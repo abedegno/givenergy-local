@@ -10,8 +10,8 @@ services:
     restart: unless-stopped
     network_mode: host
 
-  # app:
-  #   build: app/
-  #   ports:
-  #     - "3000:80"
-  #   restart: unless-stopped
+  app:
+    build: app/
+    ports:
+      - "3000:80"
+    restart: unless-stopped
