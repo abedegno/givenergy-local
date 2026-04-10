@@ -169,7 +169,7 @@ def test_load_known_bool_setting(settings):
     assert s is not None
     assert s["name"] == "Enable AC Charge Upper % Limit"
     assert s["type"] == "bool"
-    assert s["register"] == "charge_target_soc"
+    assert s["register"] == "enable_charge_target"
 
 
 def test_load_known_time_setting(settings):

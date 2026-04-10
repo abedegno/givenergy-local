@@ -40,7 +40,7 @@ def resolve_register_name(cloud_name: str) -> str | None:
     # Exact/prefix matches
     if cloud_name == "Enable Eco Mode":
         return "eco_mode"
-    if cloud_name == "Enable AC Charge Upper":
+    if cloud_name.startswith("Enable AC Charge Upper"):
         return "enable_charge_target"
     if cloud_name == "AC Charge Enable":
         return "enable_charge"
