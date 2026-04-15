@@ -19,6 +19,7 @@ def client(tmp_path):
 
     app_state.auth_required = False
     conn = init_app_db(str(tmp_path / "app.db"))
+    app_state.app_db = conn
     app_state.token_store = TokenStore(conn)
     app_state.metrics_store = MetricsStore(str(tmp_path / "metrics.db"))
     app_state.settings = load_settings_from_cloud_dump("cloud-data/settings.json")

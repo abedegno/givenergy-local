@@ -102,7 +102,7 @@ async def inverter_events(
     """Return fault events for the given inverter serial."""
     from givlocal.main import app_state
 
-    conn = app_state.token_store._conn
+    conn = app_state.app_db
 
     query = (
         "SELECT id, inverter_serial, timestamp, event_type, description, cleared_at"

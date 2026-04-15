@@ -2,10 +2,24 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import PlainTextResponse
 
 router = APIRouter()
+
+
+async def _optional_auth(authorization: str = Header(None)) -> None:
+    """Enforce bearer auth on /metrics iff config.prometheus_auth_required."""
+    from givlocal.main import app_state
+
+    if not app_state.prometheus_auth_required:
+        return
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid token")
+    token = authorization[7:]
+    if not app_state.token_store.validate(token):
+        raise HTTPException(status_code=401, detail="Invalid API token")
+
 
 METRICS = [
     ("givenergy_solar_power_watts", "p_pv1", "p_pv2"),  # sum of two
@@ -24,9 +38,14 @@ METRICS = [
 ]
 
 
-@router.get("/metrics", response_class=PlainTextResponse)
+@router.get("/metrics", response_class=PlainTextResponse, dependencies=[Depends(_optional_auth)])
 async def prometheus_metrics():
-    """Expose current inverter state in Prometheus format. No auth required."""
+    """Expose current inverter state in Prometheus format.
+
+    Auth is required iff `prometheus_auth_required: true` in config (the
+    safe default). Set to `false` to allow unauthenticated scraping from
+    trusted monitoring hosts.
+    """
     from givlocal.main import app_state
 
     lines = []

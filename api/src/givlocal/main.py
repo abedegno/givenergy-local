@@ -38,9 +38,13 @@ class AppState:
     config: Optional[AppConfig] = None
     token_store: Optional[TokenStore] = None
     metrics_store: Optional[MetricsStore] = None
+    # Shared sqlite connection for the app DB. Routes should use this rather
+    # than reaching into TokenStore._conn.
+    app_db: Optional[object] = None
     inverters: dict[str, InverterState] = field(default_factory=dict)
     settings: dict = field(default_factory=dict)
     auth_required: bool = True
+    prometheus_auth_required: bool = True
 
 
 app_state = AppState()
@@ -57,16 +61,27 @@ async def lifespan(app: FastAPI):
         config = load_config(config_path)
         app_state.config = config
         app_state.auth_required = config.auth_required
+        app_state.prometheus_auth_required = config.prometheus_auth_required
         logger.info("Loaded config from %s", config_path)
     except FileNotFoundError:
+        # If the user explicitly set GIVENERGY_CONFIG, a missing file is an
+        # error — don't silently boot with an empty inverter list. If the env
+        # var was not set and the default config.yaml is missing, keep the
+        # legacy "warn and use defaults" behaviour so tests and first-run
+        # developer setups still work.
+        if "GIVENERGY_CONFIG" in os.environ:
+            raise RuntimeError(f"GIVENERGY_CONFIG={config_path!r} not found") from None
         logger.warning("Config file %s not found — using defaults", config_path)
         config = None
+    except ValueError as e:
+        raise RuntimeError(f"Invalid configuration in {config_path}: {e}") from e
 
     # 2. Initialise databases
     app_db_path = config.storage.app_db if config else "data/app.db"
     metrics_db_path = config.storage.metrics_db if config else "data/metrics.db"
 
     app_db_conn = init_app_db(app_db_path)
+    app_state.app_db = app_db_conn
     app_state.token_store = TokenStore(app_db_conn)
 
     app_state.metrics_store = MetricsStore(metrics_db_path)

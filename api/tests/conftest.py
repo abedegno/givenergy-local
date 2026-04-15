@@ -5,6 +5,16 @@ import textwrap
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _reset_write_throttle():
+    """Per-test reset of the inverter-control write-rate throttle."""
+    from givlocal.api import inverter_control
+
+    inverter_control._last_write.clear()
+    yield
+    inverter_control._last_write.clear()
+
+
 @pytest.fixture
 def tmp_config(tmp_path):
     """Create a temporary config YAML file and return its path."""

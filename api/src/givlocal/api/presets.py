@@ -40,7 +40,7 @@ async def list_preset_profiles(serial: str):
     if serial not in app_state.inverters:
         raise HTTPException(status_code=404, detail="Inverter not found")
 
-    conn = app_state.token_store._conn
+    conn = app_state.app_db
     cursor = conn.execute(
         "SELECT id, name, settings, created_at FROM preset_profiles WHERE inverter_serial = ? ORDER BY id",
         (serial,),
@@ -66,7 +66,7 @@ async def create_preset_profile(serial: str, body: CreateProfileRequest):
     if serial not in app_state.inverters:
         raise HTTPException(status_code=404, detail="Inverter not found")
 
-    conn = app_state.token_store._conn
+    conn = app_state.app_db
     cursor = conn.execute(
         "INSERT INTO preset_profiles (inverter_serial, name, settings) VALUES (?, ?, ?)",
         (serial, body.name, json.dumps(body.settings)),
@@ -83,7 +83,7 @@ async def delete_preset_profile(serial: str, body: DeleteProfileRequest):
     if serial not in app_state.inverters:
         raise HTTPException(status_code=404, detail="Inverter not found")
 
-    conn = app_state.token_store._conn
+    conn = app_state.app_db
     conn.execute(
         "DELETE FROM preset_profiles WHERE id = ? AND inverter_serial = ?",
         (body.id, serial),

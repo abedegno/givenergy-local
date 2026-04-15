@@ -20,6 +20,7 @@ def client(tmp_path):
 
     app_state.auth_required = False
     conn = init_app_db(str(tmp_path / "app.db"))
+    app_state.app_db = conn
     app_state.token_store = TokenStore(conn)
     app_state.settings = load_settings_from_cloud_dump("cloud-data/settings.json")
 
@@ -111,3 +112,23 @@ def test_write_setting_time(client):
     assert response.status_code in (200, 201)
     body = response.json()
     assert body["data"]["success"] is True
+
+
+def test_write_setting_throttled(client):
+    # Two rapid writes to the same serial: second must be rate-limited.
+    r1 = client.post("/v1/inverter/FA2424G403/settings/71/write", json={"value": 20})
+    assert r1.status_code in (200, 201)
+    r2 = client.post("/v1/inverter/FA2424G403/settings/71/write", json={"value": 30})
+    assert r2.status_code == 429
+
+
+def test_write_setting_audited(client):
+    from givlocal.main import app_state
+
+    r = client.post("/v1/inverter/FA2424G403/settings/71/write", json={"value": 20})
+    assert r.status_code in (200, 201)
+    rows = app_state.app_db.execute(
+        "SELECT event_type, inverter_serial FROM events WHERE event_type='setting_write'"
+    ).fetchall()
+    assert len(rows) == 1
+    assert rows[0][1] == "FA2424G403"

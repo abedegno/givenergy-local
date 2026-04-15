@@ -17,6 +17,7 @@ def client(tmp_path):
     from tests.fixtures.register_data import make_inverter_cache
 
     app_state.auth_required = False
+    app_state.prometheus_auth_required = False
     conn = init_app_db(str(tmp_path / "app.db"))
     app_state.token_store = TokenStore(conn)
     app_state.metrics_store = MetricsStore(str(tmp_path / "metrics.db"))

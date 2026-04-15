@@ -42,16 +42,23 @@ class AppConfig:
     storage: StorageConfig = field(default_factory=StorageConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
     auth_required: bool = True
+    prometheus_auth_required: bool = True
     poll_interval: int = 30
     full_refresh_interval: int = 300
 
 
-def _load_inverters(raw: list[dict[str, Any]]) -> list[InverterConfig]:
+def _load_inverters(raw: Any) -> list[InverterConfig]:
+    if raw is None:
+        return []
+    if not isinstance(raw, list):
+        raise ValueError(f"'inverters' must be a list of {{host, port?}} entries, got {type(raw).__name__}")
     result = []
-    for item in raw:
+    for i, item in enumerate(raw):
+        if not isinstance(item, dict) or "host" not in item:
+            raise ValueError(f"inverters[{i}] must be a mapping with a 'host' field")
         result.append(
             InverterConfig(
-                host=item["host"],
+                host=str(item["host"]),
                 port=int(item.get("port", 8899)),
             )
         )
@@ -92,6 +99,7 @@ def load_config(path: str) -> AppConfig:
         storage=storage,
         server=server,
         auth_required=bool(data.get("auth_required", True)),
+        prometheus_auth_required=bool(data.get("prometheus_auth_required", True)),
         poll_interval=int(data.get("poll_interval", 30)),
         full_refresh_interval=int(data.get("full_refresh_interval", 300)),
     )
