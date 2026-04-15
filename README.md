@@ -17,11 +17,13 @@ cd givlocal/api
 python3 -m venv .venv
 .venv/bin/pip install requests pyyaml
 
-# Run the cloud dump tool
+# Run the cloud dump tool (parallel workers recommended for full history)
 PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump \
   --token YOUR_API_TOKEN \
   --output ./my-cloud-dump \
-  --days 1460
+  --days 1460 \
+  --workers 8 \
+  --rate 250
 ```
 
 ### Getting an API token
@@ -36,7 +38,7 @@ PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump \
 | Data | Description |
 |------|-------------|
 | **settings.json** | All inverter settings with IDs, names, and validation rules |
-| **data_points.json** | Historical solar/battery/grid data (one entry per 5 minutes) |
+| **data_points.json** | Historical solar/battery/grid data (~2000+ points/day, paginated) |
 | **presets.json** | Saved preset configurations |
 | **events.json** | Fault and warning history |
 | **communication_devices.json** | Inverter and dongle details |
@@ -46,16 +48,17 @@ PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump \
 ### Options
 
 ```bash
-# Full dump (all history, takes ~20 minutes for 4 years)
-# Full dump (all history, takes ~20 minutes for 4 years)
-PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump --token TOKEN --output ./dump --days 1460
+# Full dump (4 years, parallel - ~30-40 minutes)
+PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump --token TOKEN --output ./dump --days 1460 --workers 8 --rate 250
 
 # Settings only (fastest -- critical for GivLocal to work)
 PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump --token TOKEN --output ./dump --settings-only
 
 # Last 30 days only
-PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump --token TOKEN --output ./dump --days 30
+PYTHONPATH=src .venv/bin/python -m givlocal.cli.cloud_dump --token TOKEN --output ./dump --days 30 --workers 4
 ```
+
+`--workers N` fetches N days in parallel. `--rate R` caps total API requests/minute (GivEnergy's limit is 300/min; default 250 stays safely under). Use `--workers 1` (default) for sequential mode.
 
 **Important:** The `settings.json` file is needed by GivLocal to control your inverter. Copy it to `cloud-data/settings.json` in your GivLocal installation after dumping.
 

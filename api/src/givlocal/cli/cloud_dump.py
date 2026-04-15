@@ -16,7 +16,10 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -30,8 +33,29 @@ BASE_URL = "https://api.givenergy.cloud/v1"
 RATE_LIMIT_PAUSE = 2  # seconds between paginated requests
 
 
+class RateLimiter:
+    """Sliding-window limiter: at most `max_per_min` acquisitions per 60s."""
+
+    def __init__(self, max_per_min: int):
+        self.max = max_per_min
+        self.times: deque = deque()
+        self.lock = threading.Lock()
+
+    def acquire(self):
+        while True:
+            with self.lock:
+                now = time.monotonic()
+                while self.times and now - self.times[0] >= 60:
+                    self.times.popleft()
+                if len(self.times) < self.max:
+                    self.times.append(now)
+                    return
+                wait = 60 - (now - self.times[0]) + 0.01
+            time.sleep(wait)
+
+
 class CloudDumper:
-    def __init__(self, token: str, output_dir: str):
+    def __init__(self, token: str, output_dir: str, workers: int = 1, rate_per_min: int = 250):
         self.token = token
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -44,11 +68,17 @@ class CloudDumper:
             }
         )
         self.request_count = 0
+        self.count_lock = threading.Lock()
         self.inverter_serials: list[str] = []
+        self.workers = max(1, workers)
+        self.limiter = RateLimiter(rate_per_min) if workers > 1 else None
 
     def _get(self, path: str, params: dict = None) -> dict | None:
         url = f"{BASE_URL}{path}"
-        self.request_count += 1
+        if self.limiter:
+            self.limiter.acquire()
+        with self.count_lock:
+            self.request_count += 1
         try:
             resp = self.session.get(url, params=params, timeout=30)
             if resp.status_code == 429:
@@ -173,26 +203,62 @@ class CloudDumper:
         if data:
             self._save(f"inverters/{serial}/health.json", data)
 
+    def _fetch_day(self, serial: str, date_str: str) -> list:
+        day_points: list = []
+        page = 1
+        while True:
+            data = self._get(
+                f"/inverter/{serial}/data-points/{date_str}",
+                params={"page": page, "pageSize": 100},
+            )
+            if not data:
+                break
+            points = data.get("data", [])
+            if not points:
+                break
+            day_points.extend(points)
+            meta = data.get("meta", {})
+            last_page = meta.get("last_page", 1)
+            if page >= last_page:
+                break
+            page += 1
+            if not self.limiter:
+                time.sleep(0.3)
+        return day_points
+
     def dump_data_points(self, serial: str, days: int = 365):
-        print(f"\n  [{serial}] Historical data points (last {days} days)...")
+        print(f"\n  [{serial}] Historical data points (last {days} days, {self.workers} workers)...")
         today = datetime.now().date()
-        all_points = []
-        for i in range(days):
-            date = today - timedelta(days=i)
-            date_str = date.isoformat()
-            data = self._get(f"/inverter/{serial}/data-points/{date_str}")
-            if data:
-                points = data.get("data", [])
-                if points:
-                    all_points.extend(points)
-                    if (i + 1) % 30 == 0 or i == 0:
-                        print(f"    {date_str}: {len(points)} points (total: {len(all_points)})")
-            time.sleep(0.3)  # ~200 req/min to stay under 300 limit
+        dates = [(today - timedelta(days=i)).isoformat() for i in range(days)]
+        results: dict[str, list] = {}
 
-            # Save periodically to avoid losing data on crash
-            if (i + 1) % 30 == 0:
-                self._save(f"inverters/{serial}/data_points.json", all_points)
+        if self.workers == 1:
+            for i, date_str in enumerate(dates):
+                points = self._fetch_day(serial, date_str)
+                results[date_str] = points
+                if (i + 1) % 30 == 0 or i == 0:
+                    total = sum(len(v) for v in results.values())
+                    print(f"    {date_str}: {len(points)} points (total: {total})")
+                if (i + 1) % 30 == 0:
+                    flat = [p for d in dates[: i + 1] for p in results.get(d, [])]
+                    self._save(f"inverters/{serial}/data_points.json", flat)
+        else:
+            completed = 0
+            with ThreadPoolExecutor(max_workers=self.workers) as pool:
+                future_to_date = {pool.submit(self._fetch_day, serial, d): d for d in dates}
+                for fut in as_completed(future_to_date):
+                    d = future_to_date[fut]
+                    try:
+                        results[d] = fut.result()
+                    except Exception as e:
+                        print(f"    ERROR fetching {d}: {e}")
+                        results[d] = []
+                    completed += 1
+                    if completed % 30 == 0 or completed == 1:
+                        total = sum(len(v) for v in results.values())
+                        print(f"    {completed}/{days} days done ({d}: {len(results[d])}, total: {total})")
 
+        all_points = [p for d in dates for p in results.get(d, [])]
         self._save(f"inverters/{serial}/data_points.json", all_points)
         print(f"    Total: {len(all_points)} data points")
 
@@ -287,6 +353,13 @@ def main():
     parser.add_argument("--token", required=True, help="GivEnergy Cloud API token (Bearer token)")
     parser.add_argument("--output", default="./cloud-dump", help="Output directory (default: ./cloud-dump)")
     parser.add_argument("--days", type=int, default=365, help="Days of historical data to pull (default: 365)")
+    parser.add_argument("--workers", type=int, default=1, help="Parallel workers for data-point fetch (default: 1)")
+    parser.add_argument(
+        "--rate",
+        type=int,
+        default=250,
+        help="Max API req/min when parallel (default: 250, cap 300)",
+    )
     parser.add_argument(
         "--settings-only",
         action="store_true",
@@ -294,7 +367,12 @@ def main():
     )
     args = parser.parse_args()
 
-    dumper = CloudDumper(token=args.token, output_dir=args.output)
+    dumper = CloudDumper(
+        token=args.token,
+        output_dir=args.output,
+        workers=args.workers,
+        rate_per_min=args.rate,
+    )
 
     if args.settings_only:
         print("Settings-only mode: dumping device list and settings")
